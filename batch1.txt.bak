@@ -1,0 +1,22 @@
+global class SchedulePopulatePreferedPCPBatch implements Database.Batchable<sObject> {
+    global Database.QueryLocator start(Database.BatchableContext BC) {
+            Id memRecordTypeId = Schema.SObjectType.Account.getRecordTypeInfosByName().get(System.Label.Member_Account_RecordType).getRecordTypeId();
+        	List<Account> accList = [SELECT Id, RecordTypeId, Practitioner_Role_Name__c from Account where RecordTypeId = :memRecordTypeId];
+        	set<String> practitionalRoleSet = new set<String>();
+            for(Account a : accList){
+                practitionalRoleSet.add(a.Practitioner_Role_Name__c);
+            }
+        	String query = 'SELECT Id, Practitioner_Role_Name__c, Practitioner_Phone_Number__c from Provider_Supplier_Location__c where Practitioner_Role_Name__c IN :practitionalRoleSet';
+            return Database.getQueryLocator(query);          
+    }
+ 
+    global void execute(Database.BatchableContext BC, List<Provider_Supplier_Location__c> updateList) {
+           try {
+               UPDATE updateList;     
+           } catch (Exception e) {
+                    System.debug('Problem updating account: ' + e.getMessage());
+           	 }  
+    	}  
+    global void finish(Database.BatchableContext BC) {
+    }
+}
